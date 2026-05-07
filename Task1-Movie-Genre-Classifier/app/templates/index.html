@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎬 Movie Genre Classifier</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c28;
+      --border: #2a2a3d;
+      --accent: #e8ff47;
+      --accent2: #ff6b6b;
+      --text: #e8e8f0;
+      --muted: #6b6b85;
+      --radius: 12px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'DM Mono', monospace;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      padding: 2rem 2.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--accent); }
+    .badge {
+      font-size: 0.65rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      padding: 2px 8px;
+      border-radius: 20px;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    /* ── Main Layout ── */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      max-width: 1200px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 2.5rem;
+      gap: 2rem;
+    }
+
+    /* ── Input Panel ── */
+    .input-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.88rem;
+      padding: 1rem;
+      resize: vertical;
+      min-height: 220px;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.6;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.85rem;
+      padding: 0.75rem 1rem;
+      outline: none;
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%236b6b85'%3E%3Cpath d='M0 0l6 8 6-8z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+    }
+    select:focus { border-color: var(--accent); }
+
+    .btn-predict {
+      background: var(--accent);
+      color: #0a0a0f;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.9rem 1.5rem;
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.02em;
+      transition: transform 0.15s, opacity 0.15s;
+    }
+    .btn-predict:hover { opacity: 0.9; transform: translateY(-1px); }
+    .btn-predict:active { transform: translateY(0); }
+    .btn-predict:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .example-chip {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      color: var(--muted);
+      transition: color 0.2s, border-color 0.2s;
+    }
+    .example-chip:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* ── Results Panel ── */
+    .results-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .results-header {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .results-placeholder {
+      flex: 1;
+      border: 1px dashed var(--border);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0.75rem;
+      padding: 3rem;
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-align: center;
+      min-height: 300px;
+    }
+    .results-placeholder .icon { font-size: 2.5rem; opacity: 0.4; }
+
+    .genre-bars { display: flex; flex-direction: column; gap: 0.75rem; }
+
+    .genre-bar-item {
+      display: grid;
+      grid-template-columns: 32px 1fr auto;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .genre-emoji { font-size: 1.2rem; text-align: center; }
+    .bar-track {
+      background: var(--surface2);
+      border-radius: 4px;
+      height: 28px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      align-items: center;
+      padding-left: 0.6rem;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #0a0a0f;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .bar-fill.top { background: var(--accent); }
+    .bar-fill.second { background: #7ee8a2; }
+    .bar-fill.third { background: #5bc0eb; }
+    .bar-fill.other { background: var(--surface); color: var(--muted); }
+    .confidence-pct {
+      font-size: 0.8rem;
+      color: var(--muted);
+      min-width: 3.5rem;
+      text-align: right;
+    }
+
+    .top-result {
+      background: var(--surface);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .top-result .big-emoji { font-size: 2.5rem; }
+    .top-result .top-genre-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+    .top-result .top-confidence {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .model-tag {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+
+    /* ── Loading Spinner ── */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #0a0a0f;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ── */
+    .error-box {
+      background: #2a0f0f;
+      border: 1px solid var(--accent2);
+      color: var(--accent2);
+      border-radius: var(--radius);
+      padding: 1rem;
+      font-size: 0.82rem;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.7rem;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--muted); text-decoration: underline; }
+
+    @media (max-width: 768px) {
+      main { grid-template-columns: 1fr; padding: 1.5rem; }
+      header { padding: 1.25rem 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎬 <span>Genre</span>Classifier</div>
+  <span class="badge">ML Project</span>
+</header>
+
+<main>
+  <!-- ── Input Panel ── -->
+  <div class="input-panel">
+    <div>
+      <label>Plot Summary</label>
+      <textarea id="plotInput" placeholder="Paste a movie plot summary here...
+
+Example: A group of astronauts travel through a wormhole near Saturn in search of a new home for humanity as Earth faces environmental collapse..."></textarea>
+    </div>
+
+    <div>
+      <label>Try an Example</label>
+      <div class="examples" id="examples"></div>
+    </div>
+
+    <div>
+      <label>Classifier Model</label>
+      <select id="modelSelect">
+        {% if models %}
+          {% for model in models %}
+            <option value="{{ model }}">{{ model.replace('_', ' ').title() }}</option>
+          {% endfor %}
+        {% else %}
+          <option value="">No models found — run python src/train.py</option>
+        {% endif %}
+      </select>
+    </div>
+
+    <button class="btn-predict" id="predictBtn" onclick="predict()">
+      Predict Genre
+    </button>
+  </div>
+
+  <!-- ── Results Panel ── -->
+  <div class="results-panel">
+    <div class="results-header">Prediction Results</div>
+    <div id="resultsArea">
+      <div class="results-placeholder">
+        <div class="icon">🎭</div>
+        <div>Enter a plot summary and click<br /><strong>Predict Genre</strong> to get started</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Movie Genre Classifier &mdash; Built with scikit-learn &amp; Flask &middot;
+  <a href="https://github.com/YOUR_USERNAME/movie-genre-classifier" target="_blank">GitHub</a>
+</footer>
+
+<script>
+const EXAMPLES = [
+  { label: "Sci-Fi 🚀", text: "A crew of astronauts discovers a signal from deep space, leading them to an ancient alien civilization with technology beyond human comprehension." },
+  { label: "Horror 👻", text: "A family moves into a remote farmhouse only to discover the previous owners were murdered by an entity that still haunts the property." },
+  { label: "Romance ❤️", text: "Two strangers meet during a cross-country train journey and fall deeply in love, only to discover they live on opposite sides of the world." },
+  { label: "Action 💥", text: "A former special forces soldier goes undercover to dismantle a terrorist cell planning a biological attack on a major city." },
+  { label: "Comedy 😂", text: "A hapless accountant accidentally inherits a failing comedy club and must figure out how to save it while discovering a hidden talent for stand-up." },
+  { label: "Fantasy 🧙", text: "An orphan discovers she is descended from a line of powerful sorcerers and must master ancient magic before a dark warlock destroys the realm." },
+];
+
+// Render example chips
+const examplesEl = document.getElementById('examples');
+EXAMPLES.forEach(ex => {
+  const chip = document.createElement('button');
+  chip.className = 'example-chip';
+  chip.textContent = ex.label;
+  chip.onclick = () => {
+    document.getElementById('plotInput').value = ex.text;
+  };
+  examplesEl.appendChild(chip);
+});
+
+// ── Predict ──
+async function predict() {
+  const text = document.getElementById('plotInput').value.trim();
+  const model = document.getElementById('modelSelect').value;
+  const btn = document.getElementById('predictBtn');
+  const resultsArea = document.getElementById('resultsArea');
+
+  if (!text) {
+    resultsArea.innerHTML = `<div class="error-box">⚠️ Please enter a plot summary.</div>`;
+    return;
+  }
+
+  // Loading state
+  btn.disabled = true;
+  btn.innerHTML = `<span class="spinner"></span> Classifying...`;
+  resultsArea.innerHTML = `<div class="results-placeholder"><div class="icon">⏳</div><div>Running prediction...</div></div>`;
+
+  try {
+    const resp = await fetch('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, model, top_k: 5 }),
+    });
+    const data = await resp.json();
+
+    if (data.error) throw new Error(data.error);
+
+    renderResults(data);
+  } catch (err) {
+    resultsArea.innerHTML = `<div class="error-box">❌ Error: ${err.message}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Predict Genre';
+  }
+}
+
+function renderResults(data) {
+  const { predictions, model_used, top_genre } = data;
+  const top = predictions[0];
+
+  const barColors = ['top', 'second', 'third', 'other', 'other'];
+
+  const barsHTML = predictions.map((p, i) => {
+    const pct = (p.confidence * 100).toFixed(1);
+    const colorClass = barColors[i] || 'other';
+    return `
+      <div class="genre-bar-item">
+        <div class="genre-emoji">${p.emoji}</div>
+        <div class="bar-track">
+          <div class="bar-fill ${colorClass}" style="width: 0%" data-target="${pct}">
+            ${p.genre}
+          </div>
+        </div>
+        <div class="confidence-pct">${pct}%</div>
+      </div>
+    `;
+  }).join('');
+
+  document.getElementById('resultsArea').innerHTML = `
+    <div class="top-result">
+      <div class="big-emoji">${top.emoji}</div>
+      <div>
+        <div class="top-genre-name">${top.genre}</div>
+        <div class="top-confidence">${(top.confidence * 100).toFixed(1)}% confidence</div>
+      </div>
+    </div>
+    <div class="genre-bars">${barsHTML}</div>
+    <div class="model-tag">Model: ${model_used}</div>
+  `;
+
+  // Animate bars
+  requestAnimationFrame(() => {
+    document.querySelectorAll('.bar-fill').forEach(bar => {
+      const target = bar.dataset.target;
+      bar.style.width = target + '%';
+    });
+  });
+}
+
+// Allow Enter key to trigger prediction (Shift+Enter for newline)
+document.getElementById('plotInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); predict(); }
+});
+</script>
+
+</body>
+</html>
