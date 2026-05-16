@@ -1,0 +1,17 @@
+# Core
+torch>=2.2.0
+torchvision>=0.17.0
+
+# HuggingFace datasets
+datasets>=2.18.0
+huggingface_hub>=0.22.0
+
+# Web UI
+streamlit>=1.33.0
+
+# Plotting (optional but nice for training curves)
+matplotlib>=3.8.0
+numpy>=1.26.0
+
+# Progress bars etc.
+tqdm>=4.66.0
