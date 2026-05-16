@@ -44,7 +44,7 @@ pip install -r requirements.txt
 ## Project Structure (clean & simple)
 
 ```
-handwritten-text-rnn-humanized/
+handwritten-text-rnn/
 ├── src/
 │   ├── __init__.py
 │   ├── model.py          # CharRNN class (LSTM/GRU/RNN)
